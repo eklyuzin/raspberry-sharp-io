@@ -236,7 +236,7 @@ namespace Raspberry.IO.GeneralPurpose
             var pinGroupAddress = gpioAddress + (int) (Interop.BCM2835_GPLEV0 + (uint) 0 * 4);
             var value = SafeReadUInt32(pinGroupAddress);
 
-            return (ProcessorPins)((uint)pins & value);
+            return ProcessorPinExtensionMethods.And(pins, value);
         }
 
         #endregion

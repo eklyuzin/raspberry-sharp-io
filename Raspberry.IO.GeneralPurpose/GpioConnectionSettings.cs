@@ -19,6 +19,7 @@ namespace Raspberry.IO.GeneralPurpose
 
         private TimeSpan blinkDuration;
         private TimeSpan pollInterval;
+        private int pinCount;
 
         #endregion
 
@@ -33,6 +34,7 @@ namespace Raspberry.IO.GeneralPurpose
             BlinkDuration = DefaultBlinkDuration;
             PollInterval = DefaultPollInterval;
             Opened = true;
+            PinCount = DefaultPinCount;
         }
 
         #endregion
@@ -43,6 +45,7 @@ namespace Raspberry.IO.GeneralPurpose
         /// Gets the default blink duration.
         /// </summary>
         public static readonly TimeSpan DefaultBlinkDuration = TimeSpan.FromMilliseconds(250);
+        public static readonly int DefaultPinCount = 32; //Enum.GetValues(typeof(ProcessorPin)).Cast<int>().Distinct().Count()
 
         #endregion
 
@@ -90,6 +93,12 @@ namespace Raspberry.IO.GeneralPurpose
         {
             get { return pollInterval; }
             set { pollInterval = value >= TimeSpan.Zero ? value : DefaultPollInterval; }
+        }
+
+        public int PinCount
+        {
+            get { return pinCount; }
+            set { pinCount = value; }
         }
 
         /// <summary>
@@ -148,7 +157,6 @@ namespace Raspberry.IO.GeneralPurpose
                     : GetBestDriver(Board.Current.IsRaspberryPi ? GpioConnectionDriverCapabilities.None : GpioConnectionDriverCapabilities.CanWorkOnThirdPartyComputers);
             }
         }
-
         #endregion
 
         #region Methods

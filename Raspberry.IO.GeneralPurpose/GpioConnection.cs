@@ -25,8 +25,8 @@ namespace Raspberry.IO.GeneralPurpose
         private readonly Dictionary<ProcessorPin, bool> pinValues = new Dictionary<ProcessorPin, bool>();
         private readonly Dictionary<ProcessorPin, EventHandler<PinStatusEventArgs>> pinEvents = new Dictionary<ProcessorPin, EventHandler<PinStatusEventArgs>>();
 
-        private ProcessorPins inputPins = ProcessorPins.None;
-        private ProcessorPins pinRawValues = ProcessorPins.None;
+        private ProcessorPins inputPins;
+        private ProcessorPins pinRawValues;
 
         #endregion
 
@@ -60,6 +60,10 @@ namespace Raspberry.IO.GeneralPurpose
         {
             this.settings = settings ?? new GpioConnectionSettings();
             Pins = new ConnectedPins(this);
+
+
+            inputPins = new ProcessorPins(settings.PinCount);
+            pinRawValues = new ProcessorPins(settings.PinCount);
 
             var pinList = pins.ToList();
             pinConfigurations = pinList.ToDictionary(p => p.Pin);
@@ -200,8 +204,8 @@ namespace Raspberry.IO.GeneralPurpose
                 namedPins.Clear();
                 pinValues.Clear();
 
-                pinRawValues = ProcessorPins.None;
-                inputPins = ProcessorPins.None;
+                pinRawValues.Clear();
+                inputPins.Clear();
             }
         }
 
@@ -325,9 +329,9 @@ namespace Raspberry.IO.GeneralPurpose
                     namedPins.Remove(configuration.Name);
                 pinValues.Remove(configuration.Pin);
 
-                var pin = (ProcessorPins)((uint)1 << (int)configuration.Pin);
-                inputPins = inputPins & ~pin;
-                pinRawValues = pinRawValues & ~pin;
+                var pin = (int)configuration.Pin;
+                inputPins.Set(pin, false);
+                pinRawValues.Set(pin, false);
             }
         }
 
@@ -494,8 +498,8 @@ namespace Raspberry.IO.GeneralPurpose
                 var inputConfiguration = (InputPinConfiguration) configuration;
                 var pinValue = Driver.Read(inputConfiguration.Pin);
 
-                var pin = (ProcessorPins)((uint)1 << (int)inputConfiguration.Pin);
-                inputPins = inputPins | pin;
+                var pin = (int)inputConfiguration.Pin;
+                inputPins.Set(pin, true);
                 pinRawValues = Driver.Read(inputPins);
 
                 if (inputConfiguration.Resistor != PinResistor.None && (Driver.GetCapabilities() & GpioConnectionDriverCapabilities.CanSetPinResistor) > 0)
@@ -537,16 +541,17 @@ namespace Raspberry.IO.GeneralPurpose
         {
             var newPinValues = Driver.Read(inputPins);
             
-            var changes = newPinValues ^ pinRawValues;
-            if (changes == ProcessorPins.None)
+            var changes = newPinValues.Diff(pinRawValues);
+            var nullPins = new ProcessorPins(changes.Count);
+            if (changes == nullPins)
                 return;
 
             var notifiedConfigurations = new List<PinConfiguration>();
-            foreach (var np in changes.Enumerate())
+            foreach (var processorPin in changes.Enumerate())
             {
-                var processorPin = (ProcessorPins) ((uint) 1 << (int) np);
-                var oldPinValue = (pinRawValues & processorPin) != ProcessorPins.None;
-                var newPinValue = (newPinValues & processorPin) != ProcessorPins.None;
+                var np = (ProcessorPin)processorPin;
+                var oldPinValue = pinRawValues.Get(processorPin);
+                var newPinValue = newPinValues.Get(processorPin);
 
                 if (oldPinValue != newPinValue)
                 {

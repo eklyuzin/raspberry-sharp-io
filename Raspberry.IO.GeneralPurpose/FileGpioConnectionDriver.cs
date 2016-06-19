@@ -189,11 +189,12 @@ namespace Raspberry.IO.GeneralPurpose
         /// </returns>
         public ProcessorPins Read(ProcessorPins pins)
         {
-            return pins.Enumerate()
-                .Select(p => Read(p) ? (ProcessorPins) ((uint) 1 << (int) p) : ProcessorPins.None)
-                    .Aggregate(
-                        ProcessorPins.None, 
-                        (a, p) => a | p);
+            var result = new ProcessorPins(pins.Count);
+            foreach(var p in pins.Enumerate())
+            {
+                result.Set(p, Read((ProcessorPin)p));
+            }
+            return result;
         }
 
         #endregion

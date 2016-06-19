@@ -20,12 +20,23 @@ namespace Raspberry.IO.GeneralPurpose
         /// </summary>
         /// <param name="pins">The pins.</param>
         /// <returns>The pins.</returns>
-        public static IEnumerable<ProcessorPin> Enumerate(this ProcessorPins pins)
+        public static IEnumerable<int> Enumerate(this ProcessorPins pins)
         {
-            return ((Enum.GetValues(typeof (ProcessorPin)) as ProcessorPin[]) ?? new ProcessorPin[0])
-                .Distinct()
-                .Where(p => (pins & (ProcessorPins) ((uint) 1 << (int) p)) != ProcessorPins.None)
+            return Enumerable.Range(0, pins.Count)
+                .Where(p => (pins.Get(p)))
                 .ToArray();
+        }
+
+
+        public static ProcessorPins And(ProcessorPins pins, uint value)
+        {
+            var result = new ProcessorPins(32);
+            foreach (var p in pins.Enumerate())
+            {
+                var val = ((uint)(1 << (int)p) & value);
+                result.Set(p, val > 0 ? true : false);
+            }
+            return result;
         }
 
         #endregion
