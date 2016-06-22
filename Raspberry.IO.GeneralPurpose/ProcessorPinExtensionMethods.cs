@@ -27,7 +27,9 @@ namespace Raspberry.IO.GeneralPurpose
                 .ToArray();
         }
 
-
+        /// <summary>
+        /// Logical AND opertion on pins with int
+        /// </summary>
         public static ProcessorPins And(ProcessorPins pins, uint value)
         {
             var result = new ProcessorPins(32);

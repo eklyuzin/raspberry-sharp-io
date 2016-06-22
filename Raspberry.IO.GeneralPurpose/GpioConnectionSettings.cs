@@ -45,6 +45,9 @@ namespace Raspberry.IO.GeneralPurpose
         /// Gets the default blink duration.
         /// </summary>
         public static readonly TimeSpan DefaultBlinkDuration = TimeSpan.FromMilliseconds(250);
+        /// <summary>
+        /// Gets the default pin count.
+        /// </summary>
         public static readonly int DefaultPinCount = 32; //Enum.GetValues(typeof(ProcessorPin)).Cast<int>().Distinct().Count()
 
         #endregion
@@ -95,6 +98,9 @@ namespace Raspberry.IO.GeneralPurpose
             set { pollInterval = value >= TimeSpan.Zero ? value : DefaultPollInterval; }
         }
 
+        /// <summary>
+        /// Gets or sets the pin count.
+        /// </summary>
         public int PinCount
         {
             get { return pinCount; }

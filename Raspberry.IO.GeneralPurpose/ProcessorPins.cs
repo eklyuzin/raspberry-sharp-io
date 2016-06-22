@@ -12,21 +12,33 @@ namespace Raspberry.IO.GeneralPurpose
     {
         private BitArray _pins;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ProcessorPins"/> class.
+        /// </summary>
         public ProcessorPins()
         {
             _pins = new BitArray(GpioConnectionSettings.DefaultPinCount, false);
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ProcessorPins"/> class.
+        /// </summary>
         public ProcessorPins(int len)
         {
             _pins = new BitArray(len, false);
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ProcessorPins"/> class.
+        /// </summary>
         public ProcessorPins(BitArray pins)
         {
             _pins = pins;
         }
 
+        /// <summary>
+        /// Pin count
+        /// </summary>
         public int Count
         {
             get
