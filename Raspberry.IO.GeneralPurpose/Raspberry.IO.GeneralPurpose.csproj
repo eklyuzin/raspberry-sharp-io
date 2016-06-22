@@ -63,6 +63,7 @@
     <Compile Include="GpioInputOutputBinaryPin.cs" />
     <Compile Include="GpioOutputBinaryPin.cs" />
     <Compile Include="Interop.cs" />
+    <Compile Include="KeUSB24AConnectionDriver.cs" />
     <Compile Include="PinDetectedEdges.cs" />
     <Compile Include="PinResistor.cs" />
     <Compile Include="ProcessorPinExtensionMethods.cs" />
