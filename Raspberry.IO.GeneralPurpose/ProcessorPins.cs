@@ -36,6 +36,16 @@ namespace Raspberry.IO.GeneralPurpose
             _pins = pins;
         }
 
+        public virtual string ToString()
+        {
+            string str = "";
+            foreach (var p in _pins)
+            {
+                str += string.Format("{0}", (p.Equals(true) ? 1 : 0));
+            }
+            return str;
+        }
+
         /// <summary>
         /// Pin count
         /// </summary>

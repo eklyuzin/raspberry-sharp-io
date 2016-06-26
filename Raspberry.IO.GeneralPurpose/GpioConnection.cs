@@ -540,14 +540,9 @@ namespace Raspberry.IO.GeneralPurpose
         private void CheckInputPins()
         {
             var newPinValues = Driver.Read(inputPins);
-            
-            var changes = newPinValues.Diff(pinRawValues);
-            var nullPins = new ProcessorPins(changes.Count);
-            if (changes == nullPins)
-                return;
 
             var notifiedConfigurations = new List<PinConfiguration>();
-            foreach (var processorPin in changes.Enumerate())
+            foreach (var processorPin in inputPins.Enumerate())
             {
                 var np = (ProcessorPin)processorPin;
                 var oldPinValue = pinRawValues.Get(processorPin);
