@@ -23,33 +23,41 @@ namespace Raspberry.IO.GeneralPurpose
         /// <summary>
         /// Initializes a new instance of the <see cref="KeUSB24AConnectionDriver"/> class.
         /// </summary>
-        public KeUSB24AConnectionDriver(string device = "/dev/ttyACM0")
+        public KeUSB24AConnectionDriver(string device = "/dev/ttyACM0", int readTimeout = 5000)
         {
             if (Environment.OSVersion.Platform != PlatformID.Unix)
-                throw new NotSupportedException("FileGpioConnectionDriver is only supported in Unix");
+                throw new NotSupportedException("KeUSB24AConnectionDriver is only supported in Unix");
 
             devicePath = device;
             serialPort = new SerialPort(devicePath);
             serialPort.Open();
-            //serialPort.ReadTimeout = readTimeout;
+            serialPort.ReadTimeout = readTimeout;
             serialPort.NewLine = "\x0d\x0a";
 
-            checkDevice();
+            if (!checkDevice())
+            {
+                throw new System.InvalidOperationException(string.Format("Unable to initialze device: {0}", device));
+            }
         }
 
-        private void checkDevice()
+        private bool checkDevice()
         {
             lock (serialPort)
             {
-                Flush();
                 var cmd = "$KE";
-                serialPort.WriteLine(cmd);
-                var resp = serialPort.ReadLine();
-                if (resp != "#OK")
+                int tryCount = 5;
+                do
                 {
-                    throw new System.InvalidOperationException(string.Format("Invalid respose: {0}", resp));
-                }
+                    Flush();
+                    serialPort.WriteLine(cmd);
+                    var resp = serialPort.ReadLine();
+                    if (resp == "#OK")
+                    {
+                        return true;
+                    }
+                } while (tryCount-- != 0);
             }
+            return false;
         }
 
         private void Flush()
