@@ -36,7 +36,10 @@ namespace Raspberry.IO.GeneralPurpose
             _pins = pins;
         }
 
-        public virtual string ToString()
+        /// <summary>
+        /// String representation.
+        /// </summary>
+        public override string ToString()
         {
             string str = "";
             foreach (var p in _pins)

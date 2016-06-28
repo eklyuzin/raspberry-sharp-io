@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO.Ports;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Threading;
 
 namespace Raspberry.IO.GeneralPurpose
 {
@@ -31,6 +33,29 @@ namespace Raspberry.IO.GeneralPurpose
             serialPort.Open();
             //serialPort.ReadTimeout = readTimeout;
             serialPort.NewLine = "\x0d\x0a";
+
+            checkDevice();
+        }
+
+        private void checkDevice()
+        {
+            lock (serialPort)
+            {
+                Flush();
+                var cmd = "$KE";
+                serialPort.WriteLine(cmd);
+                var resp = serialPort.ReadLine();
+                if (resp != "#OK")
+                {
+                    throw new System.InvalidOperationException(string.Format("Invalid respose: {0}", resp));
+                }
+            }
+        }
+
+        private void Flush()
+        {
+            serialPort.DiscardOutBuffer();
+            serialPort.DiscardInBuffer();
         }
 
         /// <summary>
@@ -41,12 +66,16 @@ namespace Raspberry.IO.GeneralPurpose
         public void Allocate(ProcessorPin pin, PinDirection direction)
         {
             //$KE,IO,SET,<LineNumber>,<IoDirection>[,S]
-            var cmd = string.Format("$KE,IO,SET,{0},{1}", (int)pin, direction == PinDirection.Input ? '1' : '0');
-            serialPort.WriteLine(cmd);
-            var resp = serialPort.ReadLine();
-            if (resp != "#IO,SET,OK")
+            lock (serialPort)
             {
-                throw new System.InvalidOperationException(string.Format("Invalid respose: {0}", resp));
+                Flush();
+                var cmd = string.Format("$KE,IO,SET,{0},{1}", (int)pin, direction == PinDirection.Input ? '1' : '0');
+                serialPort.WriteLine(cmd);
+                var resp = serialPort.ReadLine();
+                if (resp != "#IO,SET,OK")
+                {
+                    throw new System.InvalidOperationException(string.Format("Invalid respose: {0}", resp));
+                }
             }
         }
 
@@ -76,15 +105,19 @@ namespace Raspberry.IO.GeneralPurpose
         /// </summary>
         public bool Read(ProcessorPin pin)
         {
-            var cmd = string.Format("$KE,RD,{0}", (int)pin);
-            serialPort.WriteLine(cmd);
-            var resp = serialPort.ReadLine();
-            var split = resp.Split(','); //#RD,<LineNumber>,<Value> 
-            if (split.Count() == 3 && split[0] == "#RD" && Convert.ToInt32(split[1]) == (int)pin)
+            lock (serialPort)
             {
-                return split[2] == "1";
+                Flush();
+                var cmd = string.Format("$KE,RD,{0}", (int)pin);
+                serialPort.WriteLine(cmd);
+                var resp = serialPort.ReadLine();
+                var split = resp.Split(','); //#RD,<LineNumber>,<Value> 
+                if (split.Count() == 3 && split[0] == "#RD" && Convert.ToInt32(split[1]) == (int)pin)
+                {
+                    return split[2] == "1";
+                }
+                throw new System.InvalidOperationException(string.Format("Invalid respose: {0} (Request: {1})", resp, cmd));
             }
-            throw new System.InvalidOperationException(string.Format("Invalid respose: {0}", resp));
         }
 
         /// <summary>
@@ -126,13 +159,17 @@ namespace Raspberry.IO.GeneralPurpose
         /// </summary>
         public void Write(ProcessorPin pin, bool value)
         {
-            // $KE,WR,<LineNumber>,<Value>
-            var cmd = string.Format("$KE,WR,{0},{1}", (int)pin, value ? '1' : '0');
-            serialPort.WriteLine(cmd);
-            var resp = serialPort.ReadLine();
-            if (resp != "#WR,OK")
+            lock (serialPort)
             {
-                throw new System.InvalidOperationException(string.Format("Invalid respose: {}", resp));
+                Flush();
+                // $KE,WR,<LineNumber>,<Value>
+                var cmd = string.Format("$KE,WR,{0},{1}", (int)pin, value ? '1' : '0');
+                serialPort.WriteLine(cmd);
+                var resp = serialPort.ReadLine();
+                if (resp != "#WR,OK")
+                {
+                    throw new System.InvalidOperationException(string.Format("Invalid respose: {}", resp));
+                }
             }
         }
     }
